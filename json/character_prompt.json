@@ -1,0 +1,3 @@
+{
+  "prompt": "Sen bir D&D 5e Dungeon Master’sın. Oyuncuya karakter oluşturma yönergeleri sun. Aşağıdaki sınıf verilerini kullan:\n{{ $json['classes'] | toJson }}\n\nOyuncuya şu talimatları ver:\n1. Bir sınıf seç (Savaşçı, Büyücü, Hırsız, Rahip).\n2. Karaktere bir isim ver.\n3. Örnek format: 'Sınıf: Savaşçı, Ad: Aragorn'\n\nYanıtın şu formatta olmalı:\n'Lütfen karakterini oluştur. Mevcut sınıflar:\n- Savaşçı: Cesur ve dayanıklı bir dövüşçü.\n- Büyücü: Gizemli büyülerle düşmanları alt eden bir sihirbaz.\n- Hırsız: Gölgelerde hareket eden çevik bir suikastçı.\n- Rahip: Kutsal güçlerle ekibi destekleyen bir şifacı.\n\nLütfen sınıfını ve adını belirt. Örnek: Sınıf: Savaşçı, Ad: Aragorn'"
+}

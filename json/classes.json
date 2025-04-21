@@ -1,0 +1,44 @@
+{
+  "classes": [
+    {
+      "name": "Savaşçı",
+      "hp": 18,
+      "ac": 16,
+      "abilities": [
+        "Güçlü Vuruş: +2 hasar",
+        "Kalkan Savunması: +1 AC"
+      ],
+      "description": "Cesur ve dayanıklı bir dövüşçü. Yakın dövüşte ustadır."
+    },
+    {
+      "name": "Büyücü",
+      "hp": 12,
+      "ac": 13,
+      "abilities": [
+        "Ateş Topu: 2d6 hasar",
+        "Büyü Kalkanı: +2 AC (1 tur)"
+      ],
+      "description": "Gizemli büyülerle düşmanları alt eden bir sihirbaz."
+    },
+    {
+      "name": "Hırsız",
+      "hp": 14,
+      "ac": 15,
+      "abilities": [
+        "Gizli Saldırı: +1d6 hasar (sürprizde)",
+        "Kaçınma: +2 çeviklik"
+      ],
+      "description": "Gölgelerde hareket eden çevik bir suikastçı."
+    },
+    {
+      "name": "Rahip",
+      "hp": 16,
+      "ac": 14,
+      "abilities": [
+        "İyileştirme: 1d8 HP yeniler",
+        "Kutsama: +1 saldırı isabeti"
+      ],
+      "description": "Kutsal güçlerle ekibi destekleyen bir şifacı."
+    }
+  ]
+}
