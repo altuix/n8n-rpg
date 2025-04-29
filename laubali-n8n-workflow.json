@@ -1,0 +1,450 @@
+{
+  "name": "laubali",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "69948384-1be2-44f2-9a6d-b87586685805",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -400
+      ],
+      "webhookId": "",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "interest",
+              "value": "={{ $json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f16a258-37bf-4c5c-8067-58197342fd58",
+      "name": "Set Interest",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message.text.toLowerCase()}}",
+              "operation": "regex",
+              "value2": "^(/technology|/sports|/science|/health|/business|/entertainment|/politics|/education|/environment|/culture)$"
+            }
+          ]
+        }
+      },
+      "id": "730ea59f-4a9b-4498-ad44-b7a3f083b471",
+      "name": "If Valid Interest",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Please enter a valid category (e.g. technology|sports|science|health|business|entertainment|politics|education|environment|culture).",
+        "additionalFields": {}
+      },
+      "id": "ef1cf76d-57c4-41f2-b9dd-43b650afb09a",
+      "name": "Invalid Input Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -300
+      ],
+      "webhookId": "8d773194-1d68-4d37-82e2-8afad731ddb6",
+      "credentials": {
+        "telegramApi": {
+          "id": "mbRWufiHqu2NqaCu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://newsapi.org/v2/everything?q={{ $('Set Interest').item.json.interest.replace(\"/\",\"\") }}&pageSize=5&apiKey=&sortBy=publishedAt",
+        "options": {}
+      },
+      "id": "",
+      "name": "NewsAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "11bbd5a5-ccdb-471b-8ab6-43327a996004",
+              "name": "prompt",
+              "value": "={{$json.articles.map((item, index) => `${index + 1}. ${item.title} - ${item.description}`).join('\\n')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        -400
+      ],
+      "id": "f012e6aa-9355-4380-9254-0f94d0e0d885",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1488,
+        -180
+      ],
+      "id": "3eeaeb02-b72c-4cf0-bee6-f0439784f352",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "The input below is a list of news articles, each starting with a number (e.g., \"1.\", \"2.\", etc.) followed by the article title and description. Split the input into individual articles based on the numbered entries. For each article, create a 2-3 sentence summary and add a funny or absurd comment at the end. Return the output in Markdown format, with each article formatted as: *[News Title]*: [Summary]\\n*Comment*: [Funny comment]\\n\\n\n\n",
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1340,
+        -400
+      ],
+      "id": "4b65dad0-d0e3-4965-a744-69d78ef81432",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1368,
+        -180
+      ],
+      "id": "97d76a67-5d78-4b4c-9883-f3805ac75125",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "vrVwsJx6aWLbVBaV",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowStaticData = $getWorkflowStaticData('global');\n\nif (!workflowStaticData.hasOwnProperty($('Set Interest').first().json.interest)) {\n  workflowStaticData[$('Set Interest').first().json.interest] = false;\n}\n\n\nreturn [\n  {\n       data: workflowStaticData,\n\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -500
+      ],
+      "id": "0ad38dd6-0319-4bf8-8b55-5078b3671c0c",
+      "name": "check static data"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nconst workflowStaticData = $getWorkflowStaticData('global');\n\n// get new access token\nworkflowStaticData.accessToken = $input.first().json.AccessToken;\nworkflowStaticData[$('Set Interest').first().json.interest] =\n$('AI Agent').first().json.output\n  // set timestamp of new access token\nworkflowStaticData.timestamp = $now;\n\nreturn [\n  {\n      // data: $input.all(),\n      workflowStaticData: workflowStaticData,\n     \n      // today: $today\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        -400
+      ],
+      "id": "e747f72c-17f9-43f4-aa9d-ce6812bc5d64",
+      "name": "set cache data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6695966-fab2-49f9-b387-09ddbef612af",
+              "leftValue": "={{\n$json.data[$('Set Interest').item.json.interest] != false\n}}",
+              "rightValue": "\"empty\"",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "19877580-8237-41ff-ae13-190752fbaeed",
+              "leftValue": "={{ $json.data.timestamp }}",
+              "rightValue": "={{ $now.minus(30,'minute') }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "afterOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -440
+      ],
+      "id": "5e02e5b3-8a8b-44f6-9319-e34a092fccaf",
+      "name": "if cache false"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('check static data').item.json.data[$('Set Interest').item.json.interest] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        -600
+      ],
+      "id": "d7ce5162-5c01-4905-882c-8a18ab2daf42",
+      "name": "send cached message",
+      "webhookId": "2fd369b1-067a-42f1-b3cb-03424e316c78",
+      "credentials": {
+        "telegramApi": {
+          "id": "mbRWufiHqu2NqaCu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2020,
+        -400
+      ],
+      "id": "a93f81c1-0014-4822-9cc3-934d9a73fc41",
+      "name": "send message",
+      "webhookId": "2fd369b1-067a-42f1-b3cb-03424e316c78",
+      "credentials": {
+        "telegramApi": {
+          "id": "mbRWufiHqu2NqaCu",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Interest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Interest": {
+      "main": [
+        [
+          {
+            "node": "If Valid Interest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Valid Interest": {
+      "main": [
+        [
+          {
+            "node": "check static data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Input Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NewsAPI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "set cache data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check static data": {
+      "main": [
+        [
+          {
+            "node": "if cache false",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set cache data": {
+      "main": [
+        [
+          {
+            "node": "send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if cache false": {
+      "main": [
+        [
+          {
+            "node": "send cached message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NewsAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "375026a9-fe14-4ae4-8f10-42702c1b0d3b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45579509f41db263a007d50207e53aba1703f725f1917fa6100657c8c4c821af"
+  },
+  "id": "xKWjwvdEPFWDuj6F",
+  "tags": []
+}
